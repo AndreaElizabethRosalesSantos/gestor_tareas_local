@@ -42,31 +42,52 @@ class _TareasPageState extends State<TareasPage> {
     );
   }
 
-  Future<void> _agregarTarea() async {
-    final titulo = _tituloController.text;
-    if (titulo.trim().isEmpty) {
-      _mensaje('Escribe un título para la tarea.');
-      return;
-    }
+  /// Ejecuta una escritura y muestra un mensaje comprensible si falla.
+  Future<bool> _ejecutar(Future<void> Function() accion, String fallo) async {
     try {
-      await widget.repositorio.agregar(titulo);
-      if (mounted) _tituloController.clear();
+      await accion();
+      return true;
+    } on TituloInvalido catch (error) {
+      _mensaje(error.mensaje);
     } catch (error) {
-      debugPrint('Error al guardar: $error');
-      _mensaje('No se pudo guardar la tarea.');
+      debugPrint('$fallo $error');
+      _mensaje(fallo);
     }
+    return false;
   }
 
-  void _alternarCompletada(Tarea tarea, bool completada) {
-    _mensaje('Implementar actualización de tarea');
+  Future<void> _agregarTarea() async {
+    final guardada = await _ejecutar(
+      () => widget.repositorio.agregar(_tituloController.text),
+      'No se pudo guardar la tarea.',
+    );
+    if (guardada && mounted) _tituloController.clear();
   }
 
-  void _editarTarea(Tarea tarea) {
-    _mensaje('Implementar edición de título');
+  Future<void> _alternarCompletada(Tarea tarea, bool completada) async {
+    await _ejecutar(
+      () => widget.repositorio.cambiarEstado(tarea.id, completada),
+      'No se pudo actualizar la tarea.',
+    );
   }
 
-  void _eliminarTarea(Tarea tarea) {
-    _mensaje('Implementar eliminación de tarea');
+  Future<void> _editarTarea(Tarea tarea) async {
+    final nuevo = await showDialog<String>(
+      context: context,
+      builder: (_) => _DialogoEditar(tituloInicial: tarea.titulo),
+    );
+    if (nuevo == null) return;
+    await _ejecutar(
+      () => widget.repositorio.editarTitulo(tarea.id, nuevo),
+      'No se pudo editar la tarea.',
+    );
+  }
+
+  Future<void> _eliminarTarea(Tarea tarea) async {
+    await _ejecutar(
+      () => widget.repositorio.eliminar(tarea.id),
+      'No se pudo eliminar la tarea.',
+    );
   }
 
   void _mensaje(String mensaje) {
@@ -153,6 +174,46 @@ class _TareasPageState extends State<TareasPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Diálogo que administra y libera su propio controlador de texto.
+class _DialogoEditar extends StatefulWidget {
+  const _DialogoEditar({required this.tituloInicial});
+
+  final String tituloInicial;
+
+  @override
+  State<_DialogoEditar> createState() => _DialogoEditarState();
+}
+
+class _DialogoEditarState extends State<_DialogoEditar> {
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.tituloInicial,
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Editar tarea'),
+      content: TextField(controller: _controller, autofocus: true),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, _controller.text),
+          child: const Text('Guardar'),
+        ),
+      ],
     );
   }
 }
