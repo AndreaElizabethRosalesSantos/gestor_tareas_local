@@ -8,11 +8,11 @@ void main() {
   runApp(const GestorTareasApp());
 }
 
-/// Punto de entrada: abre la base una vez y la cierra al terminar.
+// Aquí empieza la app. Se abre la base y se cierra al salir.
 class GestorTareasApp extends StatefulWidget {
   const GestorTareasApp({super.key, this.database});
 
-  /// Base inyectada en pruebas. Si es null se abre la base persistente.
+  // Solo se usa en las pruebas; normalmente va null y abre la base real.
   final AppDatabase? database;
 
   @override
@@ -32,7 +32,7 @@ class _GestorTareasAppState extends State<GestorTareasApp> {
 
   @override
   void dispose() {
-    // Solo se cierra la base que abrió este widget.
+    // Si la base vino de una prueba, no la cierro aquí.
     if (widget.database == null) _db.close();
     super.dispose();
   }

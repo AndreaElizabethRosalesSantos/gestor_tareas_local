@@ -31,7 +31,7 @@ void main() {
     await tester.pumpWidget(GestorTareasApp(database: db));
     await tester.pumpAndSettle();
 
-    // Título vacío: se avisa y no se registra.
+    // Con el título vacío no debe guardar nada.
     await tester.tap(find.text('Agregar tarea'));
     await tester.pumpAndSettle();
     expect(find.text('El título no puede estar vacío.'), findsOneWidget);

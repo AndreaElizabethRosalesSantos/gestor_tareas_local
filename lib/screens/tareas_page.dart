@@ -25,7 +25,7 @@ class _TareasPageState extends State<TareasPage> {
   @override
   void initState() {
     super.initState();
-    // La consulta se abre una sola vez aquí, nunca dentro de build().
+    // La consulta va aquí y no en build() para que no se repita.
     _suscripcion = widget.repositorio.observarTareas().listen(
       (tareas) => setState(() {
         _tareas = tareas;
@@ -42,7 +42,7 @@ class _TareasPageState extends State<TareasPage> {
     );
   }
 
-  /// Ejecuta una escritura y muestra un mensaje comprensible si falla.
+  // Sirve para todas las operaciones: si algo falla muestra un mensaje.
   Future<bool> _ejecutar(Future<void> Function() accion, String fallo) async {
     try {
       await accion();
@@ -178,7 +178,7 @@ class _TareasPageState extends State<TareasPage> {
   }
 }
 
-/// Diálogo que administra y libera su propio controlador de texto.
+// Ventana para cambiar el título de una tarea.
 class _DialogoEditar extends StatefulWidget {
   const _DialogoEditar({required this.tituloInicial});
 

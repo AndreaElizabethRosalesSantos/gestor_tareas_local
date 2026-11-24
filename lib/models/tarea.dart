@@ -1,5 +1,4 @@
-/// Modelo inicial de tarea. No contiene código de SQLite.
-/// Investiga cómo representar estos campos en una tabla persistente.
+// Datos de una tarea. Cada fila de la tabla se convierte en un objeto de estos.
 class Tarea {
   final int id;
   final String titulo;

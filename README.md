@@ -64,6 +64,6 @@ Cada registro se identifica por `id`; con AUTOINCREMENT, SQLite no reutiliza los
 |---|---|
 | Windows | Compilada; P1–P5 verificadas cerrando y reabriendo la app |
 | Web | Compilada; P1–P6 verificadas recargando y reabriendo la pestaña |
-| Android | APK de depuración compilado; falta ejecutarlo en un dispositivo |
+| Android 16 (celular físico) | APK de depuración; P1–P5 verificadas cerrando y reabriendo la app |
 | iOS, macOS, Linux | Previstas por diseño; no compiladas ni ejecutadas |
 

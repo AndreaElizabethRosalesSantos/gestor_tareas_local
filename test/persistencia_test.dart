@@ -16,7 +16,7 @@ void main() {
     repo = TareasRepository(db);
   }
 
-  /// Simula cerrar la app: cierra la base y abre el mismo archivo.
+  // Hace como si cerrara y volviera a abrir la app.
   Future<void> reabrir() async {
     await db.close();
     abrir();

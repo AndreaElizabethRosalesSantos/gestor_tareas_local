@@ -3,7 +3,7 @@ import 'package:drift/drift.dart';
 import '../models/tarea.dart';
 import 'app_database.dart';
 
-/// Error de validación con un mensaje que se puede mostrar al usuario.
+// Error para cuando el título no es válido.
 class TituloInvalido implements Exception {
   const TituloInvalido(this.mensaje);
 
@@ -13,7 +13,7 @@ class TituloInvalido implements Exception {
   String toString() => mensaje;
 }
 
-/// La tarea que se quería modificar ya no existe.
+// Error para cuando la tarea ya no existe.
 class TareaNoEncontrada implements Exception {
   const TareaNoEncontrada(this.id);
 
@@ -23,7 +23,7 @@ class TareaNoEncontrada implements Exception {
   String toString() => 'No existe la tarea con ID $id.';
 }
 
-/// Única clase que consulta la base; la interfaz no contiene SQL.
+// Aquí están todas las operaciones con la base.
 class TareasRepository {
   TareasRepository(this._db);
 
@@ -31,7 +31,7 @@ class TareasRepository {
 
   final AppDatabase _db;
 
-  /// Quita espacios de los extremos y rechaza títulos no válidos.
+  // Revisa que el título no esté vacío ni sea muy largo.
   static String validarTitulo(String titulo) {
     final limpio = titulo.trim();
     if (limpio.isEmpty) {
@@ -45,31 +45,31 @@ class TareasRepository {
     return limpio;
   }
 
-  /// SELECT reactivo: emite la lista otra vez después de cada escritura.
+  // Consultar (SELECT). La lista se actualiza sola cuando algo cambia.
   Stream<List<Tarea>> observarTareas() {
     final consulta = _db.select(_db.tareas)
       ..orderBy([(t) => OrderingTerm.asc(t.id)]);
     return consulta.watch();
   }
 
-  /// INSERT. Devuelve el id generado por SQLite.
+  // Agregar (INSERT). Regresa el id que le puso SQLite.
   Future<int> agregar(String titulo) async {
     final limpio = validarTitulo(titulo);
     return _db.into(_db.tareas).insert(TareasCompanion.insert(titulo: limpio));
   }
 
-  /// UPDATE del título.
+  // Cambiar el título (UPDATE).
   Future<void> editarTitulo(int id, String titulo) async {
     final limpio = validarTitulo(titulo);
     await _actualizar(id, TareasCompanion(titulo: Value(limpio)));
   }
 
-  /// UPDATE del estado.
+  // Marcar como completada o pendiente (UPDATE).
   Future<void> cambiarEstado(int id, bool completada) {
     return _actualizar(id, TareasCompanion(completada: Value(completada)));
   }
 
-  /// DELETE por identificador.
+  // Eliminar por id (DELETE).
   Future<void> eliminar(int id) async {
     final filas = await (_db.delete(
       _db.tareas,

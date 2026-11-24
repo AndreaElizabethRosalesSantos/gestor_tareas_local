@@ -6,7 +6,7 @@ import '../models/tarea.dart';
 
 part 'app_database.g.dart';
 
-/// Tabla `tareas`. Cada fila se convierte en un objeto [Tarea].
+// Tabla de tareas.
 @UseRowClass(Tarea)
 class Tareas extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -16,7 +16,7 @@ class Tareas extends Table {
 
 @DriftDatabase(tables: [Tareas])
 class AppDatabase extends _$AppDatabase {
-  /// Las pruebas pueden pasar su propio [executor] (por ejemplo, en memoria).
+  // En las pruebas le paso otra base para no tocar la real.
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _abrirConexion());
 
   @override
@@ -25,11 +25,11 @@ class AppDatabase extends _$AppDatabase {
   static QueryExecutor _abrirConexion() {
     return driftDatabase(
       name: 'gestor_tareas',
-      // Android, iOS, Windows, Linux y macOS: archivo gestor_tareas.sqlite.
+      // Celular y computadora: se guarda en gestor_tareas.sqlite
       native: const DriftNativeOptions(
         databaseDirectory: getApplicationSupportDirectory,
       ),
-      // Navegador: SQLite compilado a WebAssembly. Archivos ubicados en web/.
+      // Navegador: necesita estos dos archivos de la carpeta web
       web: DriftWebOptions(
         sqlite3Wasm: Uri.parse('sqlite3.wasm'),
         driftWorker: Uri.parse('drift_worker.dart.js'),
