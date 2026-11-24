@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+
+import '../data/tareas_repository.dart';
 import '../models/tarea.dart';
 
-// Pantalla base SIN persistencia ni operaciones CRUD implementadas.
-// Conserva las indicaciones TODO para orientar tu trabajo.
 class TareasPage extends StatefulWidget {
-  const TareasPage({super.key});
+  const TareasPage({super.key, required this.repositorio});
+
+  final TareasRepository repositorio;
 
   @override
   State<TareasPage> createState() => _TareasPageState();
@@ -13,38 +17,67 @@ class TareasPage extends StatefulWidget {
 class _TareasPageState extends State<TareasPage> {
   final TextEditingController _tituloController = TextEditingController();
 
+  StreamSubscription<List<Tarea>>? _suscripcion;
   List<Tarea> _tareas = [];
+  bool _cargando = true;
+  String? _errorCarga;
 
   @override
   void initState() {
     super.initState();
-
+    // La consulta se abre una sola vez aquí, nunca dentro de build().
+    _suscripcion = widget.repositorio.observarTareas().listen(
+      (tareas) => setState(() {
+        _tareas = tareas;
+        _cargando = false;
+        _errorCarga = null;
+      }),
+      onError: (Object error) {
+        debugPrint('Error al leer la base: $error');
+        setState(() {
+          _cargando = false;
+          _errorCarga = 'No se pudieron cargar las tareas guardadas.';
+        });
+      },
+    );
   }
 
-  void _agregarTarea() {
-    _pendiente('Implementar registro de tarea');
+  Future<void> _agregarTarea() async {
+    final titulo = _tituloController.text;
+    if (titulo.trim().isEmpty) {
+      _mensaje('Escribe un título para la tarea.');
+      return;
+    }
+    try {
+      await widget.repositorio.agregar(titulo);
+      if (mounted) _tituloController.clear();
+    } catch (error) {
+      debugPrint('Error al guardar: $error');
+      _mensaje('No se pudo guardar la tarea.');
+    }
   }
 
   void _alternarCompletada(Tarea tarea, bool completada) {
-    _pendiente('Implementar actualización de tarea');
+    _mensaje('Implementar actualización de tarea');
   }
 
   void _editarTarea(Tarea tarea) {
-    _pendiente('Implementar edición de título');
+    _mensaje('Implementar edición de título');
   }
 
   void _eliminarTarea(Tarea tarea) {
-    _pendiente('Implementar eliminación de tarea');
+    _mensaje('Implementar eliminación de tarea');
   }
 
-  void _pendiente(String mensaje) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(mensaje)),
-    );
+  void _mensaje(String mensaje) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(mensaje)));
   }
 
   @override
   void dispose() {
+    _suscripcion?.cancel();
     _tituloController.dispose();
     super.dispose();
   }
@@ -75,7 +108,11 @@ class _TareasPageState extends State<TareasPage> {
             const Text('Mis tareas', style: TextStyle(fontSize: 18)),
             const SizedBox(height: 8),
             Expanded(
-              child: _tareas.isEmpty
+              child: _cargando
+                  ? const Center(child: CircularProgressIndicator())
+                  : _errorCarga != null
+                  ? Center(child: Text(_errorCarga!))
+                  : _tareas.isEmpty
                   ? const Center(child: Text('Todavía no hay tareas guardadas'))
                   : ListView.builder(
                       itemCount: _tareas.length,
